@@ -1,0 +1,2 @@
+#!/bin/sh
+dig +short txt $(echo $* | sed -e 's/ /_/g').wp.dg.cx

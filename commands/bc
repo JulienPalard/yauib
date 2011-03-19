@@ -1,0 +1,3 @@
+#!/bin/sh
+ulimit -t 1
+echo $* | bc -l

@@ -1,0 +1,3 @@
+#!/bin/sh
+echo 'In fortune generator : ' "$*" >&2
+[ -z "$*" ] && fortune

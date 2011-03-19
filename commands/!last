@@ -1,0 +1,12 @@
+#!/bin/sh
+[ -z "$1" ] && echo "Who ?" && exit
+if [ "$1" = '-h' ]
+then
+   echo "$(basename "$0"): Retrouve le dernier passage d'une personne"
+   echo "N'a besoin que d'une partie de son nom pour le retrouver"
+   echo "Exemple: $(basename "$0") ju"
+   exit 0
+fi
+find logs/ -type f -a -iname "*$(echo "$1" | grep -o '[a-zA-Z0-9]*' | head -n 1)*" -print0 \
+   | xargs -0 tail -n 1 \
+   | sed 's/^==> logs\//==> /g' \

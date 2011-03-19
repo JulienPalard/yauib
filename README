@@ -1,0 +1,43 @@
+yauib -- Yet Another Useless IRC Bot
+
+This bot is a pretty simple for developers
+
+It's usage is as basic as :
+
+Step 1, Fetch it :
+$ git clone git://github.com/JulienPalard/yauib.git
+
+Step 2, cd into it :
+$ cd yauib
+
+Step 3, launch it, a bit verbose :
+$ ./ircbot.py -vv connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
+
+Or check usages ...
+$ ./ircbot.py
+usage: ircbot.py [-h] [-v] [-vv] [-vvv] [-q] {say,connect} ...
+ircbot.py: error: too few arguments
+
+$ ./ircbot.py connect
+usage: ircbot.py connect [-h] [-p LOCAL_PORT] [-d] [-k KEY]
+                         server chan nickname
+ircbot.py connect: error: too few arguments
+
+Step 4, Open another terminal / console / screen / tmux ...
+
+Step 5, Use your bot to say hello to your friends :
+$ ./ircbot.py say 'Hello !'
+
+Step 6, Take a look at the logs :
+The line :
+2011-03-19 14:23:16 INFO calling: ['hooks/pubmsg', 'jul1en', '~mandark@example.com', '#chan', '', 'Hi']
+give the INFOrmation that the bot is calling the executable hooks/pubmsg with the parameters 'jul1en' etc, etc...
+
+Step 7, Look at the shell script hooks/pubmsg
+And start coding yours !
+See that the basic script in hooks/pubmsg tries to find another executable, in
+the folder commands, named as the first word of what people says on the channel
+So if someone says hello world !
+the hooks/pubmsg will try to call commands/hello with the parameter 'world !'
+
+Enjoy creating new hooks / commands, using your favorite language !

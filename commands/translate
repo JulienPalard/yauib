@@ -1,0 +1,5 @@
+#!/bin/sh
+from="${1:-fr}"
+to="${2:-en}"
+shift 2
+wget -qO- "http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&q=$*&langpair=$from|$to" | sed 's/.*"translatedText":"\([^"]*\)".*}/\1\n/';

@@ -1,0 +1,22 @@
+#!/bin/sh
+[ -z "$1" ] && echo "Stats de qui ?" && exit
+if [ "$1" = '-h' ]
+then
+   echo "$(basename "$0"): Calcule des status sur quelqu'un"
+   echo "N'a besoin que d'une partie de son nom pour le retrouver"
+   echo "Exemple: $(basename "$0") ju"
+   exit 0
+fi
+find logs -type f -iname "*$(echo "$1" | grep -o '[a-zA-Z0-9]*' | head -n 1)*" -print0 \
+    | xargs -0 wc -l | while read count who
+do
+    if [ -n "$who" ]
+    then
+        if [ "$who" != total ]
+        then
+            echo $(echo "$who" | sed 's/^logs\///g') "a dit $count phrases"
+        else
+            echo $who $count conneries :P
+        fi
+    fi
+done

@@ -1,0 +1,3 @@
+#!/bin/sh
+echo 'I know the following commands :'
+echo $(ls -1 commands | grep -v _\\\|:\\\|log )
