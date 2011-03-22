@@ -1,4 +1,5 @@
 #!/bin/sh
+set -f
 echo "$*" >&2
 s_login="$(echo "$1" | sed 's#/#__SLASH__#g')"
 s_host="$2"
@@ -15,5 +16,5 @@ if [ -x "commands/$command" ]
     then
     args=$(echo "$1" | sed 's/^ *[^ ]* *//g' )
     echo "Running command '$command' $args" >&2
-    commands/$command "$args"
+    commands/$command $args
 fi
