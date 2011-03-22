@@ -1,3 +1,4 @@
 #!/bin/sh
+[ "$1" = -h ] && echo "An arbitrary precision calculator" && echo "Usage: bc 1 + 1" && exit
 ulimit -t 1
 echo $* | bc -l

@@ -1,2 +1,3 @@
 #!/bin/sh
+[ "$1" = "-h" ] && echo "Print the date and time" && exit
 [ -z "$*" ] && date

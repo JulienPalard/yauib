@@ -1,5 +1,20 @@
 #!/bin/sh
-from="${1:-fr}"
-to="${2:-en}"
-shift 2
+usage()
+{
+    echo "Usage: translate [FROM-TO] blah blah"
+    echo "    [FROM] defaults to fr"
+    echo "    [TO] defaults to en"
+    echo "Example: translate en-fr shit"
+}
+
+[ "$1" = -h -o -z "$1" ] && usage && exit
+
+from=fr
+to=en
+if echo "$1" | grep -q -- '-'
+then
+    from="$(echo $1 | cut -d- -f1)"
+    to="$(echo $1 | cut -d- -f2)"
+    shift
+fi
 wget -qO- "http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&q=$*&langpair=$from|$to" | sed 's/.*"translatedText":"\([^"]*\)".*}/\1\n/';

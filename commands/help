@@ -1,3 +1,11 @@
 #!/bin/sh
-echo 'I know the following commands :'
-echo $(ls -1 commands | grep -v _\\\|:\\\|log )
+command="$(echo "$1" | sed 's#/#__SLASH__#g')"
+
+usage()
+{
+    echo 'Usage: help COMMAND'
+    echo '    With COMMANDS in :'
+    echo $(ls -1 commands | grep -v _\\\|:\\\|log | grep -v '~' | grep -v '#')
+}
+
+[ "$command" = "-h" -o -z "$command" ] && usage || commands/$command -h

@@ -1,2 +1,3 @@
 #!/bin/sh
+[ "$1" = -h ] && echo "Displays a calendar" && exit
 [ -z "$*" ] && cal

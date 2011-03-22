@@ -1,2 +1,9 @@
 #!/bin/bash
+usage()
+{
+    echo "Quand je suis gentil, je dis re aux gens qui reviennent :-)"
+    exit
+}
+
+[ "$1" = "-h" ] && usage
 [ $(($RANDOM % 3)) = 1 ] && echo 're !'

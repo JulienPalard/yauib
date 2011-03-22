@@ -1,3 +1,3 @@
 #!/bin/sh
-echo 'In fortune generator : ' "$*" >&2
+[ "$1" = -h ] && echo "fortune - print a random, hopefully interesting, adage"
 [ -z "$*" ] && fortune

@@ -1,2 +1,11 @@
 #!/bin/sh
+usage()
+{
+    echo "Compute MD5 message digest"
+    echo "Usage: md5sum blah blah balh"
+    exit
+}
+
+[ "$1" = -h -o -z "$1" ] && usage
+
 echo -n $* | md5sum | cut -d' ' -f1
