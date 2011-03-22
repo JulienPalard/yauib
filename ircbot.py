@@ -100,7 +100,8 @@ class IRCBot:
             logging.info("calling: %s" % str(call))
             if os.path.isfile(call[0]):
                 output = subprocess.Popen(call, stdout=subprocess.PIPE).communicate()
-                logging.info("    \_'%s'" % output[1])
+                if output[1] is not None:
+                    logging.info("    \_'%s'" % output[1])
                 if len(output[0]) > 0:
                     for line in output[0].split('\n'):
                         if len(line.strip()) > 0:
