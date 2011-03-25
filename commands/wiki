@@ -1,2 +1,10 @@
 #!/bin/sh
-dig +short txt $(echo $* | sed -e 's/ /_/g').wp.dg.cx
+usage()
+{
+    echo 'Query something on en.Wikipedia.org ...'
+    echo "Usage: $(basename "$0") sex"
+    exit
+}
+
+[ "$1" = -h -o -z "$1" ] && usage
+dig +short txt $(echo $* | sed -e 's/ /_/g' | grep -o '[a-zA-Z0-9_()]*' | head -n1).wp.dg.cx | tr -d \\ | grep -v '^;;'
