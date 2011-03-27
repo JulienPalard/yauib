@@ -7,8 +7,7 @@ t_login="$3"
 t_host="$4"
 shift 4
 arguments="$*"
-mkdir -p logs
-echo "$(date) $s_host $t_login $t_host $arguments" >> logs/$s_login
+mkdir -p logs/users
 echo "Arguments : '$arguments'" >&2
 command=$(echo "${1%% *}" | sed 's#/#__SLASH__#g')
 echo "Trying command '$command'" >&2
@@ -18,3 +17,4 @@ if [ -x "commands/$command" ]
     echo "Running command '$command' $args" >&2
     commands/$command $args
 fi
+echo "$(date "+%Y-%m-%d %H:%M:%S") $s_host $t_login $t_host $arguments" >> logs/users/$s_login
