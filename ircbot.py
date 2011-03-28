@@ -6,7 +6,7 @@ import select
 import sys
 import os
 import subprocess
-from pype import netwrite
+from pipe import netwrite
 from irclib import IRC
 from time import sleep
 
