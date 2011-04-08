@@ -1,20 +1,37 @@
-#!/bin/sh
-set -f
-echo "$*" >&2
-s_login="$(echo "$1" | sed 's#/#__SLASH__#g')"
+#!/bin/sh -f
+#
+# This is a basic example hook for incoming public messges
+#
+# It role is simple, this hook will try to run binaries in the 'commands' folder
+# But if the binary is not found, it will try to run the catchall binary 'run'
+#
+# Example:
+#   If someone says: 'eval 1 + 1'
+#   Then if commands/eval exists this hook will try to execute :
+#       commands/eval 1 + 1
+#   else if commands/run exists, this hook will try to execute :
+#       commands/run eval 1 + 1
+
+mkdir -p "logs/users"
+now=$(date "+%Y-%m-%d %H:%M:%S")
+
+s_user="$(printf %s "$1" | sed 's#/#__SLASH__#g')"
 s_host="$2"
-t_login="$3"
+t_user="$3"
 t_host="$4"
 shift 4
 arguments="$*"
-mkdir -p logs/users
-echo "Arguments : '$arguments'" >&2
-command=$(echo "${1%% *}" | sed 's#/#__SLASH__#g')
-echo "Trying command '$command'" >&2
+
+command=$(printf "%s" "${1%% *}" | sed 's#/#__SLASH__#g')
+args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
+
 if [ -x "commands/$command" ]
-    then
-    args=$(echo "$1" | sed 's/^ *[^ ]* *//g' )
-    echo "Running command '$command' $args" >&2
+then
     commands/$command $args
+elif [ -x "commands/run" ]
+then
+    commands/run $command $args
 fi
-echo "$(date "+%Y-%m-%d %H:%M:%S") $s_host $t_login $t_host $arguments" >> logs/users/$s_login
+
+printf "%s\n" "$now $s_host $t_user $t_host $arguments" >> "logs/users/$s_user"
+

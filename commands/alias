@@ -1,0 +1,41 @@
+#!/bin/sh -f
+if [ "$1" = '-h' ]
+then
+   echo "$(basename "$0"): Alias une commande. Usage :"
+   echo "List existing aliases : alias"
+   echo "Show an alias : alias NAME"
+   echo "Create an alias: alias NAME WHAT TO DO"
+   echo "Example: (julien) alias pi >>> import math; print math.pi"
+   echo "         (julien) pi"
+   echo "         (the-biatch) 3.1415926535897931"
+   exit 0
+fi
+
+if [ -z "$1" ]
+then
+    ls -1 db/aliases | tr '\n' ' '
+    exit 0
+fi
+
+command="$(echo "$1" | sed 's|/|__SLASH__|g')"
+shift
+args="$*"
+
+if [ -z "$args" ]
+then
+    if [ -f "db/aliases/$command" ]
+    then
+        cat "db/aliases/$command"
+    else
+        echo "$command is not an existing alias, try 'alias' to list them all."
+    fi
+    exit 0
+fi
+
+mkdir -p db/aliases
+
+echo "$args" > "db/aliases/$command"
+
+
+
+

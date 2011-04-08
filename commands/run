@@ -1,0 +1,31 @@
+#!/bin/sh -f
+if [ "$1" = '-h' ]
+then
+   echo "$(basename "$0"): Run a command"
+   echo "Usage: run NAME"
+   echo "Example: (julien) alias pi >>> import math; print math.pi"
+   echo "         (julien) run pi"
+   echo "         (the-biatch) 3.1415926535897931"
+   exit 0
+fi
+
+mkdir -p db/aliases
+
+command="$(echo "$1" | sed 's|/|__SLASH__|g')"
+
+if [ -f "db/aliases/$command" ]
+then
+    line=$(cat "db/aliases/$command")
+    command=$(echo "${line%% *}" | sed 's#/#__SLASH__#g')
+    echo "Alias trying command '$command'" >&2
+    if [ -x "commands/$command" ]
+    then
+        args=$(echo "$line" | sed 's/^ *[^ ]* *//g' )
+        echo "Running command '$command' $args" >&2
+        commands/$command $args
+    fi
+fi
+
+
+
+
