@@ -1,0 +1,9 @@
+#!/bin/sh
+usage()
+{
+    echo "Obtain weather conditions and forecasts"
+    echo "Ussage 'weather [METAR]'"
+    echo "    METAR: Defaults to LFPO"
+}
+
+[ "$1" = -h ] && usage || weather -i ${1:-LFPO} --quiet -m
