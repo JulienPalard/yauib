@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import re
 import sys
 import urllib
 
@@ -16,7 +17,7 @@ args = urllib.urlencode({'statement': ' '.join(sys.argv[1:]),
                          'session': session})
 
 result = urllib.urlopen("http://shell.appspot.com/shell.do?%s" % args).read()
-if result.split("\r\n")[0] == "Status: 200 OK":
+if re.search("Status: 200 OK", result.split("\r\n")[0]):
     print "\n".join(result.split("\r\n")[6:])
 else:
     print result

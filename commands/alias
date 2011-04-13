@@ -5,9 +5,8 @@ then
    echo "List existing aliases : alias"
    echo "Show an alias : alias NAME"
    echo "Create an alias: alias NAME WHAT TO DO"
-   echo "Example: (julien) alias pi >>> import math; print math.pi"
-   echo "         (julien) pi"
-   echo "         (the-biatch) 3.1415926535897931"
+   echo "Supports arguments in alias : |ARGS| in an alias is replaced by \
+arguments given to it when called"
    exit 0
 fi
 

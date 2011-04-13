@@ -11,17 +11,17 @@ fi
 
 mkdir -p db/aliases
 
-command="$(echo "$1" | sed 's|/|__SLASH__|g')"
+alias=$(printf "%s" "$1" | sed 's#/#__SLASH__#g')
+args=$(printf "%s" "$*" | sed 's/^ *[^ ]* *//g' )
 
-if [ -f "db/aliases/$command" ]
+if [ -f "db/aliases/$alias" ]
 then
-    line=$(cat "db/aliases/$command")
-    command=$(echo "${line%% *}" | sed 's#/#__SLASH__#g')
-    echo "Alias trying command '$command'" >&2
+    line=$(cat "db/aliases/$alias" | sed "s/|ARGS|/$args/g")
+    command=$(printf "%s" "${line%% *}" | sed 's#/#__SLASH__#g')
     if [ -x "commands/$command" ]
     then
         args=$(echo "$line" | sed 's/^ *[^ ]* *//g' )
-        echo "Running command '$command' $args" >&2
+        printf '%s\n' "Alias running command '$command' with '$args'" >&2
         commands/$command $args
     fi
 fi

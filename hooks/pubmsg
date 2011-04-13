@@ -23,11 +23,16 @@ shift 4
 arguments="$*"
 
 command=$(printf "%s" "${1%% *}" | sed 's#/#__SLASH__#g')
+first_letter=$(expr substr "$1" 1 1)
 args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
 
 if [ -x "commands/$command" ]
 then
+    printf '%s\n' "Running command '$command' with '$args'" >&2
     commands/$command $args
+elif [ "$first_letter" != '/' ] && [ -n "$first_letter" ] && [ -x "commands/$first_letter" ]
+then
+    commands/"$first_letter" $(expr substr "$1" 2 ${#1}) $args
 elif [ -x "commands/run" ]
 then
     commands/run $command $args
