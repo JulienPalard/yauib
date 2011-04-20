@@ -26,7 +26,7 @@ command=$(printf "%s" "${1%% *}" | sed 's#/#__SLASH__#g')
 first_letter=$(expr substr "$1" 1 1)
 args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
 
-if [ -x "commands/$command" ]
+if [ -x "commands/$command" ] && [ -f "commands/$command" ]
 then
     printf '%s\n' "Running command '$command' with '$args'" >&2
     commands/$command $args

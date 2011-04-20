@@ -1,3 +1,10 @@
-#!/bin/sh
-[ "$1" = -h ] && echo "Displays a calendar" && exit
-[ -z "$*" ] && cal
+#!/usr/bin/env python
+import sys
+import datetime
+import calendar
+
+if len(sys.argv) > 1 and sys.argv[1] == '-h':
+    print "Displays a calendar"
+    sys.exit(0)
+now = datetime.datetime.now()
+calendar.TextCalendar().prmonth(now.year, now.month)
