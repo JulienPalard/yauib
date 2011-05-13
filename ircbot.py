@@ -58,6 +58,19 @@ class Network:
                 logging.debug("Socket %d have something to read" % have_to_read.fileno())
                 self.sockets_by_fileno[have_to_read.fileno()].on_read(have_to_read)
 
+
+def word_wrap(string, length):
+    if length < 1:
+        return ""
+    if len(string) <= length:
+        return string;
+    space = string[0:length + 1].rfind(" ")
+    if space != -1:
+        return string[0:space] + "\n" + word_wrap(string[space + 1:], length)
+    else:
+        return string[0:length] + "\n" + word_wrap(string[length:], length)
+
+
 class IRCBot:
     def __init__(self, server, chan, key, nickname, local_port):
         self.network = Network()
@@ -75,7 +88,9 @@ class IRCBot:
         if not data:
             self.network.remove_socket(socket)
         else:
-            self.connection.privmsg(self.chan, data)
+            for line in data.split("\n"):
+                self.connection.privmsg(self.chan, line)
+                sleep(1)
 
     def add_socket(self, socket):
         self.network.add_socket(socket, lambda s: self.ircobj.process_data([s]))
@@ -103,7 +118,10 @@ class IRCBot:
                 if output[1] is not None:
                     logging.info("    \_'%s'" % output[1])
                 if len(output[0]) > 0:
-                    for line in output[0].split('\n'):
+                    wrapped = word_wrap(output[0], 512 - len("\r\n") -
+                                        len("PRIVMSG %s :" % self.chan))
+                    for line in wrapped.split('\n'):
+                        logging.debug("writing [%d]:'%s'" % (len(line), line))
                         if len(line.strip()) > 0:
                             self.connection.privmsg(self.chan, line)
                             sleep(1)

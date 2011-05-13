@@ -5,7 +5,7 @@ usage()
 {
     echo 'Usage: help COMMAND'
     echo '    With COMMANDS in :'
-    echo $(ls -1 commands | grep -v _\\\|:\\\|log | grep -v '~' | grep -v '#')
+    echo $(ls -1 commands | grep -v :\\\|log | grep -v '~' | grep -v '#' | sed 's#__SLASH__#/#g')
 }
 
 [ "$command" = "-h" -o -z "$command" ] && usage || commands/$command -h

@@ -1,0 +1,20 @@
+#!/bin/sh -f
+if [ "$1" = '-h' ]
+then
+    commands/alias -h
+    exit 0
+fi
+
+if [ -z "$1" ]
+then
+    ls -1 db/aliases | tr '\n' ' '
+    exit 0
+fi
+
+command="$(echo "$1" | sed 's|/|__SLASH__|g')"
+rm -f "db/aliases/$command"
+
+
+
+
+

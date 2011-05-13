@@ -5,6 +5,7 @@ then
    echo "List existing aliases : alias"
    echo "Show an alias : alias NAME"
    echo "Create an alias: alias NAME WHAT TO DO"
+   echo "Delete an alias : unalias NAME"
    echo "Supports arguments in alias : |ARGS| in an alias is replaced by \
 arguments given to it when called"
    exit 0

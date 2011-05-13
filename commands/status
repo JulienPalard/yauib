@@ -1,0 +1,11 @@
+#!/bin/sh
+usage()
+{
+    echo 'Get last status of someone on twitter'
+    echo "Usage: $(basename "$0") sizeof"
+    exit
+}
+
+[ "$1" = -h -o -z "$1" ] && usage
+result="$(dig +short txt $(echo $1 | grep -o '[a-zA-Z0-9_()]*' | head -n1).twitter.any.io | grep -v '^;;')"
+[ -n "$result" ] && echo "$result" || echo "Humph, I can't find this twitter user ..."
