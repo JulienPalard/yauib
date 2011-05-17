@@ -1,11 +1,19 @@
-#!/bin/sh
-usage()
-{
-    echo 'Get last status of someone on twitter'
-    echo "Usage: $(basename "$0") sizeof"
-    exit
-}
+#!/usr/bin/env python
+import re
+import sys
+import DNS
 
-[ "$1" = -h -o -z "$1" ] && usage
-result="$(dig +short txt $(echo $1 | grep -o '[a-zA-Z0-9_()]*' | head -n1).twitter.any.io | grep -v '^;;')"
-[ -n "$result" ] && echo "$result" || echo "Humph, I can't find this twitter user ..."
+
+if len(sys.argv) == 1 or sys.argv[1] == "-h":
+    print 'Get last status of someone on twitter'
+    print "Usage: %s sizeof" % sys.argv[0]
+    sys.exit(0)
+
+try:
+    username = re.search('[a-zA-Z0-9*.]*', sys.argv[1]).group(0)
+    DNS.DiscoverNameServers();
+    r = DNS.Request('%s.twitter.any.io' % username, qtype='txt');
+    ans = r.req()
+    print ans.answers[0]['data'][0]
+except Exception as ex:
+    print "Humph, I can't find this twitter user ..."
