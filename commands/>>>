@@ -18,8 +18,10 @@ args = urllib.urlencode({'statement': ' '.join(sys.argv[1:]),
 
 result = urllib.urlopen("http://shell.appspot.com/shell.do?%s" % args).read()
 if re.search("Status: 200 OK", result.split("\r\n")[0]):
-    print "\n".join(result.split("\r\n")[6:])
-elif re.search("Status: 500", result.split("\r\n")[0]):
+    result = "\n".join(result.split("\r\n")[6:])
+if re.search("Status: 500", result.split("\r\n")[0]):
     print "EPIC FAIL"
+elif result[0:9] == "Traceback":
+    print result.split("\n")[-2]
 else:
     print result
