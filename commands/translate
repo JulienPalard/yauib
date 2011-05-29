@@ -1,9 +1,7 @@
 #!/bin/sh
 usage()
 {
-    echo "Usage: translate [FROM-TO] blah blah"
-    echo "    [FROM] defaults to fr"
-    echo "    [TO] defaults to en"
+    echo "Usage: translate from-to blah blah"
     echo "Example: translate en-fr shit"
 }
 
