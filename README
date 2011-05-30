@@ -2,6 +2,11 @@ yauib -- Yet Another Useless IRC Bot
 
 This bot is a pretty simple for developers
 
+There's only one dependency : pipe, available on pypi :
+http://pypi.python.org/pypi/pipe/
+Or on github https://github.com/julienpalard/pipe
+So just run `easy_install pipe` or dl it.
+
 It's usage is as basic as :
 
 Step 1, Fetch it :
