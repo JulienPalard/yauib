@@ -4,4 +4,4 @@ usage()
     echo "I just repeat..."
     echo "Usage: say something"
 }
-[ "$1" = -h -o -z "$1" ] && usage || echo $*
+[ "$1" = -h -o -z "$1" ] && usage || printf "%s\n" "$*"
