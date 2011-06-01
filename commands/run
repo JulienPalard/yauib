@@ -16,7 +16,7 @@ args=$(printf "%s" "$*" | sed 's/^ *[^ ]* *//g' )
 
 if [ -f "db/aliases/$alias" ]
 then
-    line=$(cat "db/aliases/$alias" | sed "s/|ARGS|/$args/g")
+    line=$(cat "db/aliases/$alias" | sed "s/|ARGS|/$(echo "$args" | sed 's/\\/\\\\/g;s/&/\\&/g')/g")
     command=$(printf "%s" "${line%% *}" | sed 's#/#__SLASH__#g')
     if [ -x "commands/$command" ]
     then
