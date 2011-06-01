@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -f
 usage()
 {
     echo "I just repeat..."
