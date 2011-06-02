@@ -1,0 +1,37 @@
+#!/bin/sh -f
+
+#
+# To use this module you should have bti installed (aptitude install bti if
+# you're on Debian, else, ... dunno ...)
+#
+# To let this module work you have to configure bti :
+# 1) Just create a file bti.conf in the directory conf/ near to hooks/
+# 2) GOTO http://twitter.com/apps/new and create an app
+#    -> Give write rights
+#    -> Set 'Application type' to 'Client'
+# 2') Double and triple check, AFTER having created the application but BEFORE
+#     step 3, in https://dev.twitter.com/apps that WRITE permissin is given to
+#     you app (I checked it in step 2 but twitter forgot it ... so double check)
+# 3) Copy the consumer_key and consumer_secret in bti.conf like :
+#    consumer_key=ASDFASDFASDFADSF
+#    consumer_secret=QWERTQWERTQWERT
+# 4) manually run this shell script typing ./commands/twitter
+#    An url will be given an a PIN should be asked, the PIN is found behind
+#    the url.
+# 5) Once the pin given, the script will give you an access_token_key and an
+#    access_token_secret, write them near to the consumer_key and
+#    consumer_secret in the bti.conf file.
+# 
+#
+#
+
+
+if [ "$1" = -h -o -z "$1" ]
+then
+    echo "Usage: twitter blah blah ..."
+    exit
+fi
+printf "%s\n" "$*" | bti --host twitter --account slackzomgffs --action update --config conf/bti.conf
+
+
+
