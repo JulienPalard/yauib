@@ -118,10 +118,9 @@ class IRCBot:
                 if output[1] is not None:
                     logging.info("    \_'%s'" % output[1])
                 if len(output[0]) > 0:
-                    wrapped = word_wrap(output[0], 512 - len("\r\n") -
+                    for line in output[0].split('\n'):
+                        wrapped = word_wrap(line, 512 - len("\r\n") -
                                         len("PRIVMSG %s :" % self.chan))
-                    for line in wrapped.split('\n'):
-                        logging.debug("writing [%d]:'%s'" % (len(line), line))
                         if len(line.strip()) > 0:
                             self.connection.privmsg(self.chan, line)
                             sleep(1)
