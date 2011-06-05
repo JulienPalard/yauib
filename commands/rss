@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+try:
+    import feedparser
+except ImportError:
+    print "You need http://code.google.com/p/feedparser/downloads/list"
+import sys
+
+feed = feedparser.parse(sys.argv[1])
+limit = 10
+
+for entry in feed['entries']:
+    if limit > 0:
+        print entry['title'], entry['link']
+        limit -= 1
