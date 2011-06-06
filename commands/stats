@@ -31,6 +31,7 @@ if len(stats) > 0:
      stats.iteritems() \
          | sort(cmp=lambda x, y: y[1] - x[1]) \
          | select(lambda stat: "%s: %d" % (stat[0], stat[1])) \
+         | take(10) \
          | concat \
          | lineout
 
