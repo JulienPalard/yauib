@@ -24,4 +24,5 @@ if re.search("Status: 500", result.split("\r\n")[0]):
 elif result[0:9] == "Traceback":
     print result.split("\n")[-2]
 else:
-    print result
+    print "\n".join(result.split("\n")[:5])
+
