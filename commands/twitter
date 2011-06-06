@@ -25,13 +25,25 @@
 #
 #
 
+if [ ! -f conf/bti.conf ]
+then
+    echo "The twitter command need some configuration, please read it source."
+    exit
+fi
 
 if [ "$1" = -h -o -z "$1" ]
 then
     echo "Usage: twitter blah blah ..."
+    echo "URLs are shortened using tinyurl, you will be warned if teh"
+    echo "shortened message is longer than 140 chars, so don't worry."
     exit
 fi
-printf "%s\n" "$*" | bti --host twitter --account slackzomgffs --action update --config conf/bti.conf
 
-
-
+message="$(./commands/tinyurl "$*")"
+length=$(printf "%s" "$message" | wc -l)
+if [ "$length" -gt 140 ]
+then
+    echo "Too long ..."
+else
+    printf "%s\n" "$message" | bti --host twitter --account slackzomgffs --action update --config conf/bti.conf
+fi
