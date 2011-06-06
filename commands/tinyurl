@@ -15,4 +15,9 @@ def _tiny(match):
 def tiny(string):
     return re.sub('http://[^ ]+', _tiny, string)
 
-print tiny(' '.join(sys.argv[1:]))
+
+if len(sys.argv) == 2 and sys.argv[1] == '-h':
+    print "tinyurl: Shorten urls, you can give a whole text, it will find urls"
+    print "and shorten only longest ones"
+else:
+    print tiny(' '.join(sys.argv[1:]))
