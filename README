@@ -2,10 +2,16 @@ yauib -- Yet Another Useless IRC Bot
 
 This bot is a pretty simple for developers
 
-There's only one dependency : pipe, available on pypi :
-http://pypi.python.org/pypi/pipe/
-Or on github https://github.com/julienpalard/pipe
-So just run `easy_install pipe` or dl it.
+There's only two dependencies : pipe, and irclib, available on pypi :
+Pipe:
+  http://pypi.python.org/pypi/pipe/
+  Or on github https://github.com/julienpalard/pipe
+  So just run `easy_install pipe` or dl it.
+
+irclib:
+  On debian, aptitude install python-irclib
+  Or easy_install python-irclib
+  Or dl it from sourceforge http://sourceforge.net/projects/python-irclib/
 
 It's usage is as basic as :
 
