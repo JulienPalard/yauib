@@ -63,7 +63,7 @@ def word_wrap(string, length):
     if length < 1:
         return ""
     if len(string) <= length:
-        return string;
+        return string
     space = string[0:length + 1].rfind(" ")
     if space != -1:
         return string[0:space] + "\n" + word_wrap(string[space + 1:], length)
@@ -121,9 +121,10 @@ class IRCBot:
                     for line in output[0].split('\n'):
                         wrapped = word_wrap(line, 512 - len("\r\n") -
                                         len("PRIVMSG %s :" % self.chan))
-                        if len(line.strip()) > 0:
-                            self.connection.privmsg(self.chan, line)
-                            sleep(1)
+                        for wrapped_line in wrapped.split('\n'):
+                            if len(wrapped_line.strip()) > 0:
+                                self.connection.privmsg(self.chan, wrapped_line)
+                                sleep(1)
         except Exception, ex:
             logging.critical(ex)
 
