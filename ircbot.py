@@ -10,19 +10,15 @@ from pipe import netwrite
 from irclib import IRC
 from time import sleep
 
+
 class Socket():
-    def __init__(self, socket, on_read=None, on_write=None):
-        self.socket = socket
+    def __init__(self, sock, on_read=None, on_write=None):
+        self.socket = sock
         if on_read:
             self.on_read = on_read
         if on_write:
             self.on_write = on_write
 
-    def on_write(self, socket):
-        pass
-
-    def on_read(self, socket):
-        pass
 
 class Network:
     def __init__(self):
@@ -35,28 +31,30 @@ class Network:
         sock.bind((addr, port))
         sock.listen(1)
 
-    def accept(self, socket, on_read):
+    def accept(self, sock, on_read):
         logging.debug("Accepting a connection")
-        conn, addr = socket.accept()
+        conn, addr = sock.accept()
         self.add_socket(conn, on_read)
 
-    def add_socket(self, socket, on_read=None, on_write=None):
-        logging.debug("Adding socket %d" % socket.fileno())
+    def add_socket(self, sock, on_read=None, on_write=None):
+        logging.debug("Adding socket %d", sock.fileno())
         self.sockets.append(socket)
-        self.sockets_by_fileno[socket.fileno()] = Socket(socket, on_read, on_write)
+        self.sockets_by_fileno[sock.fileno()] = Socket(sock, on_read, on_write)
 
-    def remove_socket(self, socket):
-        logging.debug("Removing socket %d" % socket.fileno())
-        self.sockets.remove(socket)
-        del self.sockets_by_fileno[socket.fileno()]
+    def remove_socket(self, sock):
+        logging.debug("Removing socket %d", sock.fileno())
+        self.sockets.remove(sock)
+        del self.sockets_by_fileno[sock.fileno()]
 
     def run_forever(self):
         while True:
             logging.debug("Entering select...")
             (r, w, e) = select.select(self.sockets, [], [])
             for have_to_read in r:
-                logging.debug("Socket %d have something to read" % have_to_read.fileno())
-                self.sockets_by_fileno[have_to_read.fileno()].on_read(have_to_read)
+                logging.debug("Socket %d have something to read",
+                              have_to_read.fileno())
+                self.sockets_by_fileno[have_to_read.fileno()] \
+                    .on_read(have_to_read)
 
 
 def word_wrap(string, length):
@@ -83,24 +81,25 @@ class IRCBot:
         self.network.listen("127.0.0.1", local_port, self.read_message)
         self.network.run_forever()
 
-    def read_message(self, socket):
-        data = socket.recv(1024)
+    def read_message(self, sock):
+        data = sock.recv(1024)
         if not data:
-            self.network.remove_socket(socket)
+            self.network.remove_socket(sock)
         else:
             for line in data.split("\n"):
                 self.connection.privmsg(self.chan, line)
                 sleep(1)
 
-    def add_socket(self, socket):
-        self.network.add_socket(socket, lambda s: self.ircobj.process_data([s]))
+    def add_socket(self, sock):
+        self.network.add_socket(sock, lambda s: self.ircobj \
+                                    .process_data([s]))
 
-    def rm_socket(self, socket):
-        self.network.remove_socket(socket)
+    def rm_socket(self, sock):
+        self.network.remove_socket(sock)
 
     def _dispatcher(self, c, e):
         if e.eventtype() == 'endofmotd':
-            logging.info("Joining channel %s" % self.chan)
+            logging.info("Joining channel %s", self.chan)
             self.connection.join(self.chan, self.key)
         try:
             source = e.source().split('!', 1) if e.source() is not None else []
@@ -112,29 +111,35 @@ class IRCBot:
             call = ['hooks/%s' % e.eventtype(), source_login, source_hostname,
                     target_login, target_hostname]
             call.extend(e.arguments())
-            logging.info("calling: %s" % str(call))
+            logging.info("calling: %s", str(call))
             if os.path.isfile(call[0]):
-                output = subprocess.Popen(call, stdout=subprocess.PIPE).communicate()
+                output = subprocess.Popen(call, stdout=subprocess.PIPE)\
+                    .communicate()
                 if output[1] is not None:
-                    logging.info("    \_'%s'" % output[1])
+                    logging.info("    \_'%s'", output[1])
                 if len(output[0]) > 0:
                     for line in output[0].split('\n'):
                         wrapped = word_wrap(line, 512 - len("\r\n") -
                                         len("PRIVMSG %s :" % self.chan))
                         for wrapped_line in wrapped.split('\n'):
                             if len(wrapped_line.strip()) > 0:
-                                self.connection.privmsg(self.chan, wrapped_line)
+                                self.connection.privmsg(self.chan,
+                                                        wrapped_line)
                                 sleep(1)
         except Exception, ex:
             logging.critical(ex)
+
 
 def connect_to_irc(conf):
     if conf.daemonize:
         import daemon
         with daemon.DaemonContext():
-            IRCBot(conf.server, conf.chan, conf.key, conf.nickname, conf.local_port)
+            IRCBot(conf.server, conf.chan, conf.key, conf.nickname,
+                   conf.local_port)
     else:
-        IRCBot(conf.server, conf.chan, conf.key, conf.nickname, conf.local_port)
+        IRCBot(conf.server, conf.chan, conf.key, conf.nickname,
+               conf.local_port)
+
 
 def say_something(conf):
     if len(conf.message) == 1 and conf.message[0] == '-':
@@ -157,6 +162,7 @@ help_say = "Say something (once connected)"
 help_message = "What to say, '-' means stdin"
 help_daemonize = "Demonize the client process"
 help_key = "Channel key"
+
 
 def main():
     parser = argparse.ArgumentParser(description=help_ircbot)
@@ -221,4 +227,3 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         sys.exit(0)
-
