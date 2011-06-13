@@ -1,48 +1,109 @@
 yauib -- Yet Another Useless IRC Bot
 
-This bot is a pretty simple for developers
+Introduction
+============
 
-There's only one dependency, to irclib :
+This bot is designed to be simple for developers.
+
+Dependencies
+============
+
+There's only one dependency, irclib :
   On debian, aptitude install python-irclib
   Or easy_install python-irclib
-  Or dl it from sourceforge http://sourceforge.net/projects/python-irclib/
+  Or DL it from sourceforge http://sourceforge.net/projects/python-irclib/
 
-It's usage is as basic as :
+How it works ?
+==============
 
-Step 1, Fetch it :
-$ git clone git://github.com/JulienPalard/yauib.git
+YAUIB is a very basic bot that, for each event received from IRC will call a
+hook in the directory hooks-enabled/
 
-Step 2, cd into it :
-$ cd yauib
+So when a public message is received, the hook hooks-enabled/pubmsg is called.
 
-Step 3, launch it, a bit verbose :
-$ ./ircbot.py -vv connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
+There is a directory to store every hooks, that is hooks-available so you
+should enable only some needed, creating symlinks in the directory
+hooks-enabled.
 
-Or check usages ...
-$ ./ircbot.py
-usage: ircbot.py [-h] [-v] [-vv] [-vvv] [-q] {say,connect} ...
-ircbot.py: error: too few arguments
+There is a usefull default hook I wrote for you, it's named 'command'.
+It executes commands that it find in the directory commands-enabled
+so you have to create some symlinks from the directory commands-available
+where I stored the commands I wrote.
 
-$ ./ircbot.py connect
-usage: ircbot.py connect [-h] [-p LOCAL_PORT] [-d] [-k KEY]
-                         server chan nickname
-ircbot.py connect: error: too few arguments
+Quick Start
+===========
 
-Step 4, Open another terminal / console / screen / tmux ...
+ * Fetch it
+    $ git clone git://github.com/JulienPalard/yauib.git && cd yauib
 
-Step 5, Use your bot to say hello to your friends :
-$ ./ircbot.py say 'Hello !'
+ * launch it as a daemon ( -d )
+    $ ./ircbot.py -d connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
+    Now your bot should appear on your channel.
 
-Step 6, Take a look at the logs :
-The line :
-2011-03-19 14:23:16 INFO calling: ['hooks/pubmsg', 'jul1en', '~mandark@example.com', '#chan', '', 'Hi']
-give the INFOrmation that the bot is calling the executable hooks/pubmsg with the parameters 'jul1en' etc, etc...
+ * Select one basic hook
+    Now it's the time to hook some events, let's bind the 'command' hook to
+    public messages :
+    $ ( cd hooks-enabled && ln -s ../hooks-available/command pubmsg )
 
-Step 7, Look at the shell script hooks/pubmsg
-And start coding yours !
-See that the basic script in hooks/pubmsg tries to find another executable, in
-the folder commands, named as the first word of what people says on the channel
-So if someone says hello world !
-the hooks/pubmsg will try to call commands/hello with the parameter 'world !'
+    The 'command' hook tries to call executables in the directory
+    'commands-enabled' for everything said on the channel with the first word
+    as executable name, and other as arguments, so the next step is to choose
+    some commands :
+
+ * Select some basic commands
+    Let's test them all ... you'll choose later :X
+    $ ( cd commands-enabled && for command in ../commands-available/*; do ln -s "$command"; done )
+
+ * Now try your bot saying 'say hello' on the channel :
+     The bot will run 'hooks-enabled/pubmsg' that is 'hooks-available/command'
+     hooks-available/commands receiving 'say hello' will call
+     commands-enabled/say hello
+     say is, basically a shell script with 'echo $*'
+     So it will echo hello, that will be wrote by the bot on the channel.
+
+Writing you own hooks
+=====================
+
+Possible hook points are listed in the file hooks-available/hookpoints
+A hook is given some parameters :
+sender_login, sender_host, target_login, target_host, message [, message[, ...]]
+
+So a very basic 'parrot' hook should be :
+#!/bin/sh
+shift 4 # Drop sender login and host, target login and host
+printf "%s\n" "$*"
+
+Writing you own commands for the command hook
+=============================================
+
+A given hook is 'hooks-available/command' that, receiving foo bar baz
+calls commands-enabled/foo with bar and baz as arguments.
+
+So if you have enabled this hook, you can write you own commands.
+A command is an executable, so it can be written in ANY language,
+it receives what people say as arguments, and the bot will say
+everything the commands write it its stdout.
+
+So a basic command writing a calendar on the channel should be named cal,
+and contain :
+
+#!/bin/sh
+cal
+
+Is there another way to make the bot speak ?
+============================================
+
+Yes, the bot is listening on a local port, by default 6668.
+Everything received on this port is wrote back to the channel.
+So a simple :
+$ echo foo | netcat localhost 6668
+will do the trick, but you should also try :
+# ./ircbot.py say foo
+That does the same !
+
+With this feature you can push messages from cron, webpages or everything else.
+
+Conclusion
+==========
 
 Enjoy creating new hooks / commands, using your favorite language !
