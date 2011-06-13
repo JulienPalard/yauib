@@ -79,7 +79,7 @@ class Network(object):
         to this Network.
         """
         logging.debug("Adding socket %d", sock.fileno())
-        self.sockets.append(socket)
+        self.sockets.append(sock)
         self.filenos[sock.fileno()] = Socket(sock, on_read, on_write)
 
     def remove_socket(self, sock):
@@ -183,7 +183,7 @@ class IRCBot:
         self.network.remove_socket(sock)
 
     def _dispatcher(self, _, event):
-        if event.emventtype() == 'endofmotd':
+        if event.eventtype() == 'endofmotd':
             logging.info("Joining channel %s", self.chan)
             self.connection.join(self.chan, self.key)
         try:
