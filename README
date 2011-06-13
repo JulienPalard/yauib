@@ -40,6 +40,9 @@ Quick Start
     $ ./ircbot.py -d connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
     Now your bot should appear on your channel.
 
+ * Remove the hook that say that you haven't read the README file :
+    $ rm -f hooks-enabled/pubmsg
+
  * Select one basic hook
     Now it's the time to hook some events, let's bind the 'command' hook to
     public messages :
