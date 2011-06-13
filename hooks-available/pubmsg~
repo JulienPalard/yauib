@@ -29,13 +29,15 @@ args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
 if [ -x "commands/$command" ] && [ -f "commands/$command" ]
 then
     printf '%s\n' "Running command '$command' with '$args'" >&2
-    commands/$command $args
+    printf "%s " "$now" >> logs/bot
+    commands/$command $args | tee -a logs/bot
 elif [ "$first_letter" != '/' ] && [ -n "$first_letter" ] && [ -x "commands/$first_letter" ]
 then
     commands/"$first_letter" $(expr substr "$1" 2 ${#1}) $args
 elif [ -x "commands/run" ]
 then
-    commands/run $command $args
+    printf "%s " "$now" >> logs/bot
+    commands/run $command $args | tee -a logs/bot
 fi
 
 printf "%s\n" "$now $s_host $t_user $t_host $arguments" >> "logs/users/$s_user"

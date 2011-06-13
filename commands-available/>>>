@@ -17,12 +17,18 @@ args = urllib.urlencode({'statement': ' '.join(sys.argv[1:]),
                          'session': session})
 
 result = urllib.urlopen("http://shell.appspot.com/shell.do?%s" % args).read()
+sys.stderr.write("Got : %s\n" % result)
 if re.search("Status: 200 OK", result.split("\r\n")[0]):
+    sys.stderr.write("Removing the '200 OK' bug\n")
     result = "\n".join(result.split("\r\n")[6:])
 if re.search("Status: 500", result.split("\r\n")[0]):
+    sys.stderr.write("We got a Status: 500\n")
     print "EPIC FAIL"
 elif result[0:9] == "Traceback":
+    sys.stderr.write("Got an exception\n")
     print result.split("\n")[-2]
 else:
-    print "\n".join(result.split("\n")[:5])
+    data = "\n".join(result.split("\n")[:5])
+    sys.stderr.write("Ok, let's print %s\n" % data)
+    print data
 

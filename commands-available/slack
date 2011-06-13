@@ -1,0 +1,15 @@
+#!/bin/sh
+if [ "$1" = '-h' ]
+then
+   echo "$(basename "$0"): Cherche des URL dans les logs"
+   echo "Get an optional argument to filter out the result"
+   exit 0
+fi
+if [ ! -z "$*" ] 
+then
+    grep 'http://' logs/users/*  | grep -i "$*" | cut -d/ -f3- | sed -r 's/^([^:]+):([^ ]+) ([^ ]+) [^ ]+ [^ ]+ (.*)$/\2 \3 <\1>\4/g' | sort | tail -n 6
+else
+    grep 'http://' logs/users/*  | cut -d/ -f3- | sed -r 's/^([^:]+):([^ ]+) ([^ ]+) [^ ]+ [^ ]+ (.*)$/\2 \3 <\1>\4/g' | sort | tail -n 6
+fi
+
+

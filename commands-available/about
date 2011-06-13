@@ -1,0 +1,29 @@
+#!/bin/sh
+usage()
+{
+    echo "Seek information about anything on Wolfram Alpha"
+    echo "Usage: about SOMETHING"
+    exit
+}
+
+[ "$1" = -h -o -z "$1" ] && usage
+
+wget -qO- "http://api.wolframalpha.com/v2/query?input=$*&format=plaintext&appid=7UP545-RL2T8AR5UV" \
+    | xml2 \
+    | grep '@title=\|plaintext=' \
+    | while read line
+do
+    if echo "$line" | grep -q '@title='
+    then
+        TITLE="$(echo "$line" | sed 's/^.*@title=//g')"
+    fi
+    if echo "$line" | grep -q 'plaintext='
+    then
+        TEXT="$(echo "$line" | sed 's/^.*plaintext=//g')"
+    fi
+    if [ -n "$TITLE" -a -n "$TEXT" ]
+    then
+        echo "$TITLE: $TEXT"
+        TEXT=''
+    fi
+done

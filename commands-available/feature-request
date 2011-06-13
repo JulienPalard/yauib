@@ -1,0 +1,12 @@
+#!/bin/sh
+if [ "$1" = "-h" -o -z "$1" ]
+then
+    echo "Send a feature request to my creator"
+    echo "Usage: feature-request I need this cause it's cool ! ..."
+    exit
+fi
+
+RANDOM=$(($(dd if=/dev/urandom count=1 2> /dev/null | cksum | cut -d' ' -f1) % 32768))
+
+echo "$*" | mail -s "[IRCBOT] Feature Request $RANDOM" mandark.dev@gmail.com \
+    && echo "Feature request $RANDOM sent !" || echo "Fail :p"

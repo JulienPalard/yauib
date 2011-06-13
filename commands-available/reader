@@ -1,0 +1,80 @@
+#!/bin/sh
+mkdir -p db/reader/feeds/
+
+usage()
+{
+    cat <<EOF
+reader is an RSS reader that push on the channel.
+Usage : reader [list|add|del]
+    list: List currently reading feeds
+    add: Add a new feed
+    del: Remove the given feed
+EOF
+    exit
+}
+
+restart_daemon()
+{
+    if [ -s db/reader/reader.pid ]
+    then
+	pid=$(cat db/reader/reader.pid)
+        [ -n "$pid" -a "$pid" -gt "0" ] && kill -9 $pid
+    fi
+    pkill -f '[r]ss_follower'
+    ./rss_follower.py --pidfile db/reader/reader.pid --daemonize --depth 3 \
+	-i 120 $(cat db/reader/feeds/*/url)
+}
+
+del()
+{
+    feed="$1"
+    path="$(printf "%s" "$feed" | sed 's/[^a-zA-Z0-9_:-]/./g')"
+
+    if [ -d "db/reader/feeds/$path" ]
+    then
+	rm -fr "db/reader/feeds/$path"
+    else
+	echo 'No such feed !' 
+    fi
+    restart_daemon
+}
+
+add()
+{
+    feed="$1"
+    path="$(printf "%s" "$feed" | sed 's/[^a-zA-Z0-9_:-]/./g')"
+
+    mkdir "db/reader/feeds/$path"
+    printf "%s\n" "$feed" > "db/reader/feeds/$path/url"
+    restart_daemon
+}
+
+list()
+{
+    feeds="$(ls -1 db/reader/feeds/)"
+    if [ -z "$feeds" ]
+    then
+	echo "No feeds registered, you can add some using $0 add URL"
+    else
+	cat db/reader/feeds/*/url
+    fi
+}
+
+case "$1" in
+    del)
+	shift
+	del "$*"
+	;;
+    list)
+	list
+	;;
+    add)
+	shift
+	add "$*"
+	;;
+    restart)
+	restart_daemon
+	;;
+    *)
+	usage
+esac

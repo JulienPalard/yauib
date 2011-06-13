@@ -1,0 +1,11 @@
+#!/bin/sh
+usage()
+{
+    echo "Compute SHA1 message digest"
+    echo "Usage: sha1sum blah blah balh"
+    exit
+}
+
+[ "$1" = -h -o -z "$1" ] && usage
+
+echo -n $* | sha1sum | cut -d' ' -f1

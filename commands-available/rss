@@ -6,7 +6,7 @@ except ImportError:
 import sys
 
 feed = feedparser.parse(sys.argv[1])
-limit = 10
+limit = 5
 
 for entry in feed['entries']:
     if limit > 0:

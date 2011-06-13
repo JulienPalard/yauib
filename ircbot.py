@@ -195,7 +195,7 @@ class IRCBot:
                 if event.target() is not None else []
             target_login = target[0] if len(target) > 0 else ""
             target_hostname = target[1] if len(target) > 1 else ""
-            call = ['hooks/%s' % event.eventtype(), source_login,
+            call = ['hooks-enabled/%s' % event.eventtype(), source_login,
                     source_hostname, target_login, target_hostname]
             call.extend(event.arguments())
             logging.info("calling: %s", str(call))

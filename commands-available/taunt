@@ -1,0 +1,33 @@
+#!/bin/sh
+
+touch db/taunts
+
+usage()
+{
+    echo "To add a taunt: taunt add I knew you couldn't do it !"
+    echo "To query a random taunt: taunt"
+    echo "To grep for a taunt: taunt search mother"
+}
+
+taunt_add()
+{
+    echo "$*" >> db/taunts
+    echo "Oh Yeah !"
+}
+
+taunt_rand()
+{
+    shuf db/taunts | head -n 1
+}
+
+taunt_search()
+{
+    grep -i "$*" db/taunts
+}
+
+case "$1" in
+     add) shift; taunt_add $@ ;;
+     search) shift; taunt_search $@ ;;
+     "") taunt_rand ;;
+     *) usage ;;
+esac

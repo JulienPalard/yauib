@@ -1,0 +1,45 @@
+#!/bin/sh -f
+#
+# This is a basic example hook for incoming public messges
+#
+# It role is simple, this hook will try to run binaries in the
+# 'commands-enabled' folder
+# But if the binary is not found, it will try to run the catchall binary 'run'
+#
+# Example:
+#   If someone says: 'eval 1 + 1'
+#   Then if commands-enabled/eval exists this hook will try to execute :
+#       commands-enabled/eval 1 + 1
+#   else if commands-enabled/run exists, this hook will try to execute :
+#       commands-enabled/run eval 1 + 1
+
+mkdir -p "logs/users"
+now=$(date "+%Y-%m-%d %H:%M:%S")
+
+s_user="$(printf %s "$1" | sed 's#/#__SLASH__#g')"
+s_host="$2"
+t_user="$3"
+t_host="$4"
+shift 4
+arguments="$*"
+
+command=$(printf "%s" "${1%% *}" | sed 's#/#__SLASH__#g')
+first_letter=$(expr substr "$1" 1 1)
+args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
+
+if [ -x "commands-enabled/$command" ] && [ -f "commands-enabled/$command" ]
+then
+    printf '%s\n' "Running command '$command' with '$args'" >&2
+    printf "%s " "$now" >> logs/bot
+    commands-enabled/$command $args | tee -a logs/bot
+elif [ "$first_letter" != '/' ] && [ -n "$first_letter" ] && [ -x "commands-enabled/$first_letter" ]
+then
+    commands-enabled/"$first_letter" $(expr substr "$1" 2 ${#1}) $args
+elif [ -x "commands-enabled/run" ]
+then
+    printf "%s " "$now" >> logs/bot
+    commands-enabled/run $command $args | tee -a logs/bot
+fi
+
+printf "%s\n" "$now $s_host $t_user $t_host $arguments" >> "logs/users/$s_user"
+
