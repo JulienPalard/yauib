@@ -30,6 +30,8 @@ It executes commands that it find in the directory commands-enabled
 so you have to create some symlinks from the directory commands-available
 where I stored the commands I wrote.
 
+NOTE: You don't have to restart the bot when you change a hook or a command.
+
 Quick Start
 ===========
 
