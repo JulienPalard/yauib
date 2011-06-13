@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "My owner should read the README file !"
