@@ -1,0 +1,11 @@
+#!/bin/sh
+s_login="$1"
+s_host="$2"
+t_login="$3"
+t_host="$4"
+shift 4
+arguments="$*"
+mkdir -p logs
+now=$(date "+%Y-%m-%d %H:%M:%S")
+
+echo "$1" | grep -qv '^PING' && echo "$now '$s_login'@'$s_host' -> '$t_login'@'$t_host': $arguments" >> logs/all_raw_messages

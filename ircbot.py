@@ -1,17 +1,26 @@
 #!/usr/bin/env python
 import logging
+from contextlib import closing
 import socket
 import argparse
 import select
 import sys
 import os
 import subprocess
-from pipe import netwrite
 from irclib import IRC
 from time import sleep
 
 
-class Socket():
+class Socket(object):
+    """
+    Socket is a struct containing a socket and two handlers :
+    on_write and on_read.
+
+    This class is used by Network to store each sockets with its
+    handlers.
+    """
+    __slots__ = ("socket", "on_read", "on_write", "sockets")
+
     def __init__(self, sock, on_read=None, on_write=None):
         self.socket = sock
         if on_read:
@@ -20,56 +29,119 @@ class Socket():
             self.on_write = on_write
 
 
-class Network:
+class Network(object):
+    """
+    The Network class provides an easy way to listen on a TCP port.
+    It internally use select to block waiting for data, and permits
+    you to manually add and remove sockets to be monitored.
+
+    Basic usage is :
+    net = Network()
+    net.listen('127.0.0.1', 4242, sys.stdout.write)
+    net.run_forever()
+
+    public methods add_socket and remove_socket can be used if
+    another part or your code have opened sockets, and you want
+    Network to select on them.
+    """
+
+    __slots__ = ('sockets', 'filenos')
+
     def __init__(self):
         self.sockets = []
-        self.sockets_by_fileno = {}
+        self.filenos = {}
 
     def listen(self, addr, port, on_read):
+        """
+        Listen for TCP connections on addr:port.
+        The callback on_read is called, with the socket as single parameter,
+        when data is available.
+        """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.add_socket(sock, lambda s: self.accept(s, on_read))
         sock.bind((addr, port))
         sock.listen(1)
 
     def accept(self, sock, on_read):
+        """
+        Used internally to accept a connection on a socket.
+        But if you need, you can use it, it will do a soc.accept()
+        then add the accepted sock to the list of monitored ones, so
+        when data is available, the callback on_read will be called.
+        """
         logging.debug("Accepting a connection")
-        conn, addr = sock.accept()
+        conn, _ = sock.accept()
         self.add_socket(conn, on_read)
 
     def add_socket(self, sock, on_read=None, on_write=None):
+        """
+        Manually add a socket and its on_read / on_write handlers
+        to this Network.
+        """
         logging.debug("Adding socket %d", sock.fileno())
         self.sockets.append(socket)
-        self.sockets_by_fileno[sock.fileno()] = Socket(sock, on_read, on_write)
+        self.filenos[sock.fileno()] = Socket(sock, on_read, on_write)
 
     def remove_socket(self, sock):
+        """
+        Manually remove a socket from the list of monitored ones.
+        """
         logging.debug("Removing socket %d", sock.fileno())
         self.sockets.remove(sock)
-        del self.sockets_by_fileno[sock.fileno()]
+        del self.filenos[sock.fileno()]
 
     def run_forever(self):
+        """
+        Start the infinite loop listening on network.
+        """
         while True:
             logging.debug("Entering select...")
-            (r, w, e) = select.select(self.sockets, [], [])
-            for have_to_read in r:
-                logging.debug("Socket %d have something to read",
-                              have_to_read.fileno())
-                self.sockets_by_fileno[have_to_read.fileno()] \
-                    .on_read(have_to_read)
+            (can_read, _, _) = select.select(self.sockets, [], [])
+            [self.filenos[sock.fileno()].on_read(sock) for sock in can_read]
 
 
 def word_wrap(string, length):
+    """
+    Wrap the given string to the given length.
+    Returns an array of strings (Event it not splitted)
+    So word_wrap("foo", 10) returns ["foo"]
+    and word_wrap("foo bar", 5) returns ["foo", "bar"]
+    """
     if length < 1:
-        return ""
+        return []
     if len(string) <= length:
-        return string
+        return [string]
     space = string[0:length + 1].rfind(" ")
     if space != -1:
-        return string[0:space] + "\n" + word_wrap(string[space + 1:], length)
+        return [string[0:space]] + word_wrap(string[space + 1:], length)
     else:
-        return string[0:length] + "\n" + word_wrap(string[length:], length)
+        return [string[0:length]] + word_wrap(string[length:], length)
 
 
 class IRCBot:
+    """
+    IRCBot is a basic bot that connect to a given serveur and channel with
+    a given nickname, and then, only tries to execute 'executables' in the
+    hooks directory named after the kinds of event it receive that
+    can be :
+     * error
+     * join
+     * kick
+     * mode
+     * part
+     * ping
+     * privmsg
+     * privnotice
+     * pubmsg <- Most usefull, it receive messages of the channel
+     * pubnotice
+     * quit
+     * invite
+     * pong
+    and a generic hook called for EVERY event, even if a hook exists for the
+    named event :
+     * all_raw_messages
+
+    """
     def __init__(self, server, chan, key, nickname, local_port):
         self.network = Network()
         self.chan = chan
@@ -82,50 +154,57 @@ class IRCBot:
         self.network.run_forever()
 
     def read_message(self, sock):
+        """
+        Read a message on the local socket and write it to the channel
+        """
         data = sock.recv(1024)
         if not data:
             self.network.remove_socket(sock)
         else:
-            for line in data.split("\n"):
-                self.connection.privmsg(self.chan, line)
-                sleep(1)
+            self.write_message(data)
+
+    def write_message(self, message):
+        """
+        Write a message to the channel
+        """
+        if len(message) > 0:
+            for line in message.split('\n'):
+                wrapped = word_wrap(line, 512 - len("\r\n") -
+                                len("PRIVMSG %s :" % self.chan))
+                for wrapped_line in wrapped:
+                    if len(wrapped_line.strip()) > 0:
+                        self.connection.privmsg(self.chan, wrapped_line)
+                        sleep(1)
 
     def add_socket(self, sock):
-        self.network.add_socket(sock, lambda s: self.ircobj \
-                                    .process_data([s]))
+        self.network.add_socket(sock, lambda s: self.ircobj.process_data([s]))
 
     def rm_socket(self, sock):
         self.network.remove_socket(sock)
 
-    def _dispatcher(self, c, e):
-        if e.eventtype() == 'endofmotd':
+    def _dispatcher(self, _, event):
+        if event.emventtype() == 'endofmotd':
             logging.info("Joining channel %s", self.chan)
             self.connection.join(self.chan, self.key)
         try:
-            source = e.source().split('!', 1) if e.source() is not None else []
+            source = event.source().split('!', 1) \
+                if event.source() is not None else []
             source_login = source[0] if len(source) > 0 else ""
             source_hostname = source[1] if len(source) > 1 else ""
-            target = e.target().split('!', 1) if e.target() is not None else []
+            target = event.target().split('!', 1) \
+                if event.target() is not None else []
             target_login = target[0] if len(target) > 0 else ""
             target_hostname = target[1] if len(target) > 1 else ""
-            call = ['hooks/%s' % e.eventtype(), source_login, source_hostname,
-                    target_login, target_hostname]
-            call.extend(e.arguments())
+            call = ['hooks/%s' % event.eventtype(), source_login,
+                    source_hostname, target_login, target_hostname]
+            call.extend(event.arguments())
             logging.info("calling: %s", str(call))
             if os.path.isfile(call[0]):
                 output = subprocess.Popen(call, stdout=subprocess.PIPE)\
                     .communicate()
                 if output[1] is not None:
                     logging.info("    \_'%s'", output[1])
-                if len(output[0]) > 0:
-                    for line in output[0].split('\n'):
-                        wrapped = word_wrap(line, 512 - len("\r\n") -
-                                        len("PRIVMSG %s :" % self.chan))
-                        for wrapped_line in wrapped.split('\n'):
-                            if len(wrapped_line.strip()) > 0:
-                                self.connection.privmsg(self.chan,
-                                                        wrapped_line)
-                                sleep(1)
+                self.write_message(output[0])
         except Exception, ex:
             logging.critical(ex)
 
@@ -141,78 +220,85 @@ def connect_to_irc(conf):
                conf.local_port)
 
 
+def netwrite(to_send, host, port):
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.connect((host, port))
+        [sock.send(data) for data in to_send]
+
+
 def say_something(conf):
     if len(conf.message) == 1 and conf.message[0] == '-':
-        sys.stdin | netwrite('127.0.0.1', conf.local_port)
+        netwrite(sys.stdin, '127.0.0.1', conf.local_port)
     else:
-        [' '.join(conf.message)] | netwrite('127.0.0.1', conf.local_port)
+        netwrite([' '.join(conf.message)], '127.0.0.1', conf.local_port)
 
-help_server = "IRC server address (ip or dns name)"
-help_chan = "Chan to join"
-help_nickname = "Nickname to use"
-help_local_port = "Local port to listen to messages"
-help_say_local_port = "Local listening port of the bot"
-help_verbose = "Be verbose (Show warning messazges)"
-help_vverbose = "Be very verbose (Show info messazges)"
-help_vvverbose = "Be very very verbose (Show debug messages)"
-help_quiet = "Be quiet"
-help_ircbot = "IRC Bot"
-help_connect = "Connect to a server"
-help_say = "Say something (once connected)"
-help_message = "What to say, '-' means stdin"
-help_daemonize = "Demonize the client process"
-help_key = "Channel key"
+HELP = {
+"server": "IRC server address (ip or dns name)",
+"chan": "Chan to join",
+"nickname": "Nickname to use",
+"local_port": "Local port to listen to messages",
+"say_local_port": "Local listening port of the bot",
+"verbose": "Be verbose (Show warning messazges)",
+"vverbose": "Be very verbose (Show info messazges)",
+"vvverbose": "Be very very verbose (Show debug messages)",
+"quiet": "Be quiet",
+"ircbot": "IRC Bot",
+"connect": "Connect to a server",
+"say": "Say something (once connected)",
+"message": "What to say, '-' means stdin",
+"daemonize": "Demonize the client process",
+"key": "Channel key"}
 
 
 def main():
-    parser = argparse.ArgumentParser(description=help_ircbot)
+    parser = argparse.ArgumentParser(description=HELP['ircbot'])
     parser.add_argument('-v', '--show-warnings',
                         dest='logging_level',
                         action='store_const',
                         const=logging.WARNING,
-                        help=help_verbose)
+                        help=HELP['verbose'])
     parser.add_argument('-vv', '--show-infos',
                         dest='logging_level',
                         action='store_const',
                         const=logging.INFO,
-                        help=help_vverbose)
+                        help=HELP['vverbose'])
     parser.add_argument('-vvv', '--show-debugs',
                         dest='logging_level',
                         action='store_const',
                         const=logging.DEBUG,
-                        help=help_vvverbose)
+                        help=HELP['vvverbose'])
     parser.add_argument('-q', '--quiet',
                         dest='logging_level',
                         action='store_const',
                         const=logging.CRITICAL,
-                        help=help_quiet)
+                        help=HELP['quiet'])
 
     subparsers = parser.add_subparsers()
-    parser_client = subparsers.add_parser('connect', help=help_connect)
-    parser_client.add_argument('server', help=help_server)
-    parser_client.add_argument('chan', help=help_chan)
-    parser_client.add_argument('nickname', help=help_nickname)
+    parser_client = subparsers.add_parser('connect', help=HELP['connect'])
+    parser_client.add_argument('server', help=HELP['server'])
+    parser_client.add_argument('chan', help=HELP['chan'])
+    parser_client.add_argument('nickname', help=HELP['nickname'])
     parser_client.add_argument('-p', '--port',
                                dest="local_port",
-                               help=help_local_port,
+                               help=HELP['local_port'],
                                type=int,
                                default=6668)
     parser_client.add_argument('-d', '--daemonize',
                                action='store_true',
                                dest='daemonize',
-                               help=help_daemonize)
+                               help=HELP['daemonize'])
     parser_client.add_argument('-k', '--key',
                                dest='key',
-                               help=help_key,
+                               help=HELP['key'],
                                default='')
     parser_client.set_defaults(func=connect_to_irc)
-    parser_say = subparsers.add_parser('say', help=help_say)
+    parser_say = subparsers.add_parser('say', help=HELP['say'])
     parser_say.add_argument('message',
                             nargs='+',
-                            help=help_message)
+                            help=HELP['message'])
     parser_say.add_argument('-p', '--port',
                             dest="local_port",
-                            help=help_say_local_port,
+                            help=HELP['say_local_port'],
                             type=int,
                             default=6668)
     parser_say.set_defaults(func=say_something)

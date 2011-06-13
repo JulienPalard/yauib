@@ -1,0 +1,18 @@
+#!/bin/sh -f
+
+mkdir -p db/quotes
+
+case "$1" in
+    add) 
+	shift	
+	echo "$*" >> db/quotes/quotes
+	;;
+    -h)
+	echo "Add a quote : quote add BLAH BLAH"
+	echo "Get a random quote : quote"
+	;;
+    *)
+	cat db/quotes/quotes | shuf | head -n 1
+	;;
+esac
+   
