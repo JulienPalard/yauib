@@ -5,6 +5,7 @@ import socket
 import argparse
 import select
 import sys
+from textwrap import wrap
 import os
 import subprocess
 from irclib import IRC
@@ -100,24 +101,6 @@ class Network(object):
             [self.filenos[sock.fileno()].on_read(sock) for sock in can_read]
 
 
-def word_wrap(string, length):
-    """
-    Wrap the given string to the given length.
-    Returns an array of strings (Event it not splitted)
-    So word_wrap("foo", 10) returns ["foo"]
-    and word_wrap("foo bar", 5) returns ["foo", "bar"]
-    """
-    if length < 1:
-        return []
-    if len(string) <= length:
-        return [string]
-    space = string[0:length + 1].rfind(" ")
-    if space != -1:
-        return [string[0:space]] + word_wrap(string[space + 1:], length)
-    else:
-        return [string[0:length]] + word_wrap(string[length:], length)
-
-
 class IRCBot:
     """
     IRCBot is a basic bot that connect to a given serveur and channel with
@@ -169,8 +152,8 @@ class IRCBot:
         """
         if len(message) > 0:
             for line in message.split('\n'):
-                wrapped = word_wrap(line, 512 - len("\r\n") -
-                                len("PRIVMSG %s :" % self.chan))
+                wrapped = wrap(line, 512 - len("\r\n") -
+                               len("PRIVMSG %s :" % self.chan))
                 for wrapped_line in wrapped:
                     if len(wrapped_line.strip()) > 0:
                         self.connection.privmsg(self.chan, wrapped_line)
