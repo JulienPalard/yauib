@@ -28,7 +28,5 @@ elif result[0:9] == "Traceback":
     sys.stderr.write("Got an exception\n")
     print result.split("\n")[-2]
 else:
-    data = "\n".join(result.split("\n")[:5])
-    sys.stderr.write("Ok, let's print %s\n" % data)
-    print data
+    print "\n".join(result.split("\n")[:5])[:1024]
 
