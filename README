@@ -38,8 +38,8 @@ Quick Start
  * Fetch it
     $ git clone git://github.com/JulienPalard/yauib.git && cd yauib
 
- * launch it as a daemon ( -d )
-    $ ./ircbot.py connect -d 'irc.server.example.com' '#your_channel' 'your_bot_login'
+ * launch it
+    $ ./ircbot.py connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
     Now your bot should appear on your channel.
 
  * Remove the hook that say that you haven't read the README file :
@@ -58,6 +58,7 @@ Quick Start
  * Select some basic commands
     Let's test them all ... you'll choose later :X
     $ ( cd commands-enabled && for command in ../commands-available/*; do ln -s "$command"; done )
+    /!\ Some commands will need writable directories like 'logs', 'db' or 'conf'
 
  * Now try your bot saying 'say hello' on the channel :
      The bot will run 'hooks-enabled/pubmsg' that is 'hooks-available/command'
