@@ -195,7 +195,7 @@ class IRCBot:
 def connect_to_irc(conf):
     if conf.daemonize:
         import daemon
-        with daemon.DaemonContext():
+        with daemon.DaemonContext(working_directory=os.getcwd()):
             IRCBot(conf.server, conf.chan, conf.key, conf.nickname,
                    conf.local_port)
     else:
