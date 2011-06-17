@@ -15,13 +15,13 @@
 # 3) Copy the consumer_key and consumer_secret in bti.conf like :
 #    consumer_key=ASDFASDFASDFADSF
 #    consumer_secret=QWERTQWERTQWERT
-# 4) manually run this shell script typing ./commands/twitter
+# 4) manually run this shell script typing ./commands-enabled/twitter
 #    An url will be given an a PIN should be asked, the PIN is found behind
 #    the url.
 # 5) Once the pin given, the script will give you an access_token_key and an
 #    access_token_secret, write them near to the consumer_key and
 #    consumer_secret in the bti.conf file.
-# 
+#
 #
 #
 
@@ -39,7 +39,7 @@ then
     exit
 fi
 
-message="$(./commands/tinyurl "$*")"
+message="$(./commands-available/tinyurl "$*")"
 length=$(printf "%s" "$message" | wc -l)
 if [ "$length" -gt 140 ]
 then

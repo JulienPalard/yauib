@@ -18,7 +18,7 @@ if [ -f "db/aliases/$alias" ]
 then
     line=$(cat "db/aliases/$alias" | sed "s/|ARGS|/$(echo "$args" | sed 's/\\/\\\\/g;s/&/\\&/g;s#/#\\/#g')/g")
     command=$(printf "%s" "${line%% *}" | sed 's#/#__SLASH__#g')
-    if [ -x "commands/$command" ]
+    if [ -x "commands-enabled/$command" ]
     then
         args=$(echo "$line" | sed 's/^ *[^ ]* *//g' )
         printf '%s\n' "Alias running command '$command' with '$args'" >&2
