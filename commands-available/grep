@@ -8,7 +8,8 @@ if len(sys.argv) < 3:
     print "grep: Grep dans les logs de quelqu'un"
     print "N'a besoin que d'une partie de son nom pour le retrouver"
     print "Usage: grep USERNAME SEARCH"
-    print "Exemple: grep shaz bite"
+    print "Exemple: grep shaz b[iy]te"
+    print "         grep CaptSea .*"
     sys.exit(0)
 
 who = sys.argv[1]
@@ -18,7 +19,7 @@ try:
     lines = os.listdir('logs/users') \
         | where(lambda user: re.search(who, user, re.IGNORECASE) is not None) \
         | select(lambda user: open('logs/users/%s' % user) \
-                     | where(lambda line: re.search(search, line, re.IGNORECASE) is not None) \
+                     | where(lambda line: re.search(search, ' '.join(line.split()[4:]), re.IGNORECASE) is not None) \
                      | select(lambda line: line.split(None, 4)) \
                      | select(lambda line: "%s %s <%s> %s" % (line[0], line[1], user, line[4]))) \
                      | traverse | sort | tail(6)
