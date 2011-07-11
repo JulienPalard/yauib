@@ -3,7 +3,7 @@ import re
 import sys
 import urllib
 
-session = "agVzaGVsbHISCxIHU2Vzc2lvbhjyvem56U0M"
+session = "agVzaGVsbHISCxIHU2Vzc2lvbhiH-Py56U0M"
 
 def usage():
     print "Python REPL"
@@ -27,6 +27,9 @@ if re.search("Status: 500", result.split("\r\n")[0]):
 elif result[0:9] == "Traceback":
     sys.stderr.write("Got an exception\n")
     print result.split("\n")[-2]
+elif result[0:9 + 5] == "<pre>Traceback":
+    sys.stderr.write("Got an exception\n")
+    print result[5:].split("\n")[-2]
 else:
     print "\n".join(result.split("\n")[:5])[:1024]
 

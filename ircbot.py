@@ -8,7 +8,7 @@ import sys
 from textwrap import wrap
 import os
 import subprocess
-from irclib import IRC
+import irclib
 from time import sleep
 
 
@@ -129,12 +129,20 @@ class IRCBot:
         self.network = Network()
         self.chan = chan
         self.key = key
-        self.ircobj = IRC(self.add_socket, self.rm_socket)
+        self.ircobj = irclib.IRC(self.add_socket, self.rm_socket)
         self.connection = self.ircobj.server()
         self.ircobj.add_global_handler("all_events", self._dispatcher, -10)
+        self.ircobj.add_global_handler("welcome", self.on_connect)
+        self.ircobj.add_global_handler("nicknameinuse", self.on_nicknameinuse)
         self.connection.connect(server, 6667, nickname)
         self.network.listen("127.0.0.1", local_port, self.read_message)
         self.network.run_forever()
+
+    def on_nicknameinuse(self, c, _):
+        c.nick(c.get_nickname() + "_")
+
+    def on_connect(self, connection, _):
+        connection.join(self.chan, self.key)
 
     def read_message(self, sock):
         """
@@ -144,9 +152,9 @@ class IRCBot:
         if not data:
             self.network.remove_socket(sock)
         else:
-            self.write_message(data)
+            self.privmsg(self.chan, data)
 
-    def write_message(self, message):
+    def privmsg(self, to, message):
         """
         Write a message to the channel
         """
@@ -156,7 +164,7 @@ class IRCBot:
                                len("PRIVMSG %s :" % self.chan))
                 for wrapped_line in wrapped:
                     if len(wrapped_line.strip()) > 0:
-                        self.connection.privmsg(self.chan, wrapped_line)
+                        self.connection.privmsg(to, wrapped_line)
                         sleep(1)
 
     def add_socket(self, sock):
@@ -165,31 +173,37 @@ class IRCBot:
     def rm_socket(self, sock):
         self.network.remove_socket(sock)
 
+    @staticmethod
+    def event_info(event):
+        source = event.source().split('!', 1) \
+            if event.source() is not None else []
+        s_login = source[0] if len(source) > 0 else ""
+        s_host = source[1] if len(source) > 1 else ""
+        target = event.target().split('!', 1) \
+            if event.target() is not None else []
+        t_login = target[0] if len(target) > 0 else ""
+        t_host = target[1] if len(target) > 1 else ""
+        return event.eventtype(), s_login, s_host, t_login, t_host
+
     def _dispatcher(self, _, event):
-        if event.eventtype() == 'endofmotd':
-            logging.info("Joining channel %s", self.chan)
-            self.connection.join(self.chan, self.key)
         try:
-            source = event.source().split('!', 1) \
-                if event.source() is not None else []
-            source_login = source[0] if len(source) > 0 else ""
-            source_hostname = source[1] if len(source) > 1 else ""
-            target = event.target().split('!', 1) \
-                if event.target() is not None else []
-            target_login = target[0] if len(target) > 0 else ""
-            target_hostname = target[1] if len(target) > 1 else ""
-            call = ['hooks-enabled/%s' % event.eventtype(), source_login,
-                    source_hostname, target_login, target_hostname]
-            call.extend(event.arguments())
+            etype, s_login, s_host, t_login, t_host = IRCBot.event_info(event)
+            call = ['hooks-enabled/%s' % etype, s_login, s_host, t_login,
+                    t_host] + event.arguments()
             logging.info("calling: %s", str(call))
             if os.path.isfile(call[0]):
                 output = subprocess.Popen(call, stdout=subprocess.PIPE)\
                     .communicate()
                 if output[1] is not None:
                     logging.info("    \_'%s'", output[1])
-                self.write_message(output[0])
+                if event.eventtype() == "privmsg":
+                    self.privmsg(s_login, output[0])
+                else:
+                    self.privmsg(self.chan, output[0])
         except Exception, ex:
             logging.critical(ex)
+            logging.critical("while receiving %s of type %s from %s to %s",
+                             str(event.arguments), etype, s_login, t_login)
 
 
 def connect_to_irc(conf):
