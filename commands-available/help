@@ -8,4 +8,20 @@ usage()
     echo $(ls -1 commands-enabled | grep -v :\\\|log | grep -v '~' | grep -v '#' | sed 's#__SLASH__#/#g')
 }
 
-[ "$command" = "-h" -o -z "$command" ] && usage || commands-enabled/$command -h
+if [ "$command" = "-h" -o -z "$command" ]
+then
+    usage
+else
+    if [ -x "commands-enabled/$command" ]
+    then
+        commands-enabled/$command -h
+    else
+        if [ -f "db/aliases/$command" ]
+        then
+            echo "$command is an alias to :"
+            cat db/aliases/$command
+        else
+            echo "Don't know $command"
+        fi
+    fi
+fi
