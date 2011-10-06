@@ -22,7 +22,7 @@ then
     then
         args=$(echo "$line" | sed 's/^ *[^ ]* *//g' )
         printf '%s\n' "Alias running command '$command' with '$args'" >&2
-        commands/$command $args
+        commands-enabled/$command $args
     fi
 fi
 

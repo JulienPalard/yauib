@@ -26,7 +26,7 @@ arguments="$*"
 command=$(printf "%s" "${1%% *}" | sed 's#/#__SLASH__#g')
 first_letter=$(expr substr "$1" 1 1)
 args=$(printf "%s" "$1" | sed 's/^ *[^ ]* *//g' )
-
+echo $first_letter >&2
 if [ -x "commands-enabled/$command" ] && [ -f "commands-enabled/$command" ]
 then
     printf '%s\n' "Running command '$command' with '$args'" >&2
@@ -34,6 +34,7 @@ then
     commands-enabled/$command $args | tee -a logs/bot
 elif [ "$first_letter" != '/' ] && [ -n "$first_letter" ] && [ -x "commands-enabled/$first_letter" ]
 then
+    printf "Running one-letter command %s with %s" "$first_letter" "$args" >&2
     commands-enabled/"$first_letter" $(expr substr "$1" 2 ${#1}) $args
 elif [ -x "commands-enabled/run" ]
 then

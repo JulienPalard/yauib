@@ -1,16 +1,13 @@
 #!/bin/sh
+
 if [ "$1" = "-h" ]
 then
     echo "Find last sayed thing matching."
     echo "Usage : !dash"
     exit 0
 fi
-search=${1:-$2}
+search="$*"
 if [ -n "$search" ]
 then
-    grep -hi "$search" logs/users/* \
-	| sort \
-	| grep -v ' !'"$search" \
-	| tail -n 1 \
-	| cut --complement -d' ' -f 3,4
+    grep -i "$search" logs/all_raw_messages | grep -v ' :!' | tail -n 1
 fi
