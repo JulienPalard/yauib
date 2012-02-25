@@ -7,9 +7,9 @@ then
 fi
 if [ ! -z "$*" ] 
 then
-    grep 'http://' logs/users/*  | grep -i "$*" | cut -d/ -f3- | sed -r 's/^([^:]+):([^ ]+) ([^ ]+) [^ ]+ [^ ]+ (.*)$/\2 \3 <\1>\4/g' | sort | tail -n 6
+    grep 'http://' logs/users/*  | grep -i "$*" | cut -d/ -f3- | sed -r 's/([^:]*):([^ ]* [^ ]*) [^ ]* [^ ]* (.*)/\2 \1 \3/g' | sort | tail -n 7
 else
-    grep 'http://' logs/users/*  | cut -d/ -f3- | sed -r 's/^([^:]+):([^ ]+) ([^ ]+) [^ ]+ [^ ]+ (.*)$/\2 \3 <\1>\4/g' | sort | tail -n 6
+    grep 'http://' logs/users/*  | cut -d/ -f3- | sed -r 's/([^:]*):([^ ]* [^ ]*) [^ ]* [^ ]* (.*)/\2 \1 \3/g' | sort | tail -n 7
 fi
 
 

@@ -26,9 +26,12 @@ class HeadRequest(urllib2.Request):
         return "HEAD"
 
 def follow(url):
-    response = urllib2.urlopen(HeadRequest(url)).info()
-    if 'Location' in response:
-        return follow(response['Location'])
+    try:
+        response = urllib2.urlopen(HeadRequest(url)).info()
+        if 'Location' in response:
+            return follow(response['Location'])
+    except:
+        pass
     return url
 
 if len(sys.argv) > 1 and '-h' in sys.argv[1]:

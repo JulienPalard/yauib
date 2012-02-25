@@ -21,6 +21,7 @@ try:
         | select(lambda user: open('logs/users/%s' % user) \
                      | where(lambda line: re.search(search, ' '.join(line.split()[4:]), re.IGNORECASE) is not None) \
                      | select(lambda line: line.split(None, 4)) \
+                     | where(lambda line: len(line) == 5) \
                      | select(lambda line: "%s %s <%s> %s" % (line[0], line[1], user, line[4]))) \
                      | traverse | sort | tail(6)
 except sre_constants.error as e:
