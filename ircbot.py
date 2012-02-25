@@ -186,20 +186,26 @@ class IRCBot:
         return event.eventtype(), s_login, s_host, t_login, t_host
 
     def _dispatcher(self, _, event):
+        etype, s_login, s_host, t_login, t_host = IRCBot.event_info(event)
         try:
-            etype, s_login, s_host, t_login, t_host = IRCBot.event_info(event)
             call = ['hooks-enabled/%s' % etype, s_login, s_host, t_login,
                     t_host] + event.arguments()
             logging.info("calling: %s", str(call))
             if os.path.isfile(call[0]):
-                output = subprocess.Popen(call, stdout=subprocess.PIPE)\
-                    .communicate()
-                if output[1] is not None:
-                    logging.info("    \_'%s'", output[1])
-                if event.eventtype() == "privmsg":
-                    self.privmsg(s_login, output[0])
+                message, debug = subprocess.Popen(call,
+                                                  stdout=subprocess.PIPE)\
+                                                  .communicate()
+                if len(message) == 0:
+                    return
+                if debug is not None:
+                    logging.info("    \_ debug '%s'", debug)
+                logging.info("    \_ response '%s'", message)
+                message_type, message = message.split(' ', 1)
+                if message_type == 'RAW':
+                    for line in message.split("\n"):
+                        self.connection.send_raw(line)
                 else:
-                    self.privmsg(self.chan, output[0])
+                    self.privmsg(*message.split(' ', 1))
         except Exception, ex:
             logging.critical(ex)
             logging.critical("while receiving %s of type %s from %s to %s",
