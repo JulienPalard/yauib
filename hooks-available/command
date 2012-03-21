@@ -23,9 +23,8 @@ t_user="$3" # The channel, for "pubmsg" hook
 t_host="$4"
 shift 4
 sentence="$*"
-command="$(echo "$1" | sed 's#/#__SLASH__#g')"
-shift
-args="$*"
+command="$(echo "${1%% *}" | sed 's#/#__SLASH__#g')"
+args="${1#* }"
 
 if [ -x "advanced-commands-enabled/$command" ] && [ -f "advanced-commands-enabled/$command" ]
 then
