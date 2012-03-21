@@ -24,7 +24,7 @@ t_host="$4"
 shift 4
 sentence="$*"
 command="$(echo "${1%% *}" | sed 's#/#__SLASH__#g')"
-args="${1#* }"
+args="$(echo "$1" | sed 's/[^ ]*//')"
 
 if [ -x "advanced-commands-enabled/$command" ] && [ -f "advanced-commands-enabled/$command" ]
 then
