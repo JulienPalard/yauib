@@ -8,10 +8,11 @@ This bot is designed to be simple for developers.
 Dependencies
 ============
 
-There's only one dependency, irclib :
-  On debian, aptitude install python-irclib
-  Or easy_install python-irclib
-  Or DL it from sourceforge http://sourceforge.net/projects/python-irclib/
+There's only two dependencies, irclib and argparse :
+  On debian, aptitude install python-irclib python-arparse
+  Or easy_install python-irclib python-argparse
+  Or DL them, irclib is from sourceforge http://sourceforge.net/projects/python-irclib/
+              and argparse is from http://code.google.com/p/argparse/
 
 Simple Quick Start
 ==================
