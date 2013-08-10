@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>Yauib by JulienPalard</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>Yauib</h1>
+          <h2>Yet Another Useless IRC Bot</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/JulienPalard/yauib/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/JulienPalard/yauib/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/JulienPalard/yauib" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h3>
+<a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h3>
+
+<p>Yauib is an IRC bot calling executables files in a hook folder to react to events. So you can write your bot's reactions in any language you want. If you want to test the bot, come on our channel #<a href="mailto:zomgffs@quakenet.org">zomgffs@quakenet.org</a></p>
+
+<h3>
+<a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies</h3>
+
+<p>There's only two dependencies, irclib and argparse :</p>
+
+<ul>
+<li>On debian, aptitude install python-irclib python-arparse</li>
+<li>Or easy_install python-irclib python-argparse</li>
+<li>Or DL them, irclib is from sourceforge <a href="http://sourceforge.net/projects/python-irclib/">http://sourceforge.net/projects/python-irclib/</a>
+          and argparse is from <a href="http://code.google.com/p/argparse/">http://code.google.com/p/argparse/</a>
+</li>
+</ul><h3>
+<a name="simple-quick-start" class="anchor" href="#simple-quick-start"><span class="octicon octicon-link"></span></a>Simple Quick Start</h3>
+
+<p>Here is a simple quick start using my simple hooks, so you don't have
+to write code.</p>
+
+<h4>
+<a name="fetch-it" class="anchor" href="#fetch-it"><span class="octicon octicon-link"></span></a>Fetch it</h4>
+
+<pre><code>$ git clone git://github.com/JulienPalard/yauib.git &amp;&amp; cd yauib
+</code></pre>
+
+<h4>
+<a name="launch-it" class="anchor" href="#launch-it"><span class="octicon octicon-link"></span></a>Launch it</h4>
+
+<pre><code>$ ./ircbot.py connect 'irc.server.example.com' '#your_channel' 'your_bot_login'
+</code></pre>
+
+<p>Now your bot should appear on your channel.</p>
+
+<h4>
+<a name="configure-hooks" class="anchor" href="#configure-hooks"><span class="octicon octicon-link"></span></a>Configure hooks</h4>
+
+<p>Remove the hook that say that you haven't read the README file :</p>
+
+<pre><code>$ rm -f hooks-enabled/pubmsg
+</code></pre>
+
+<p>Now it's the time to hook some events, let's bind the 'command' hook to public messages :</p>
+
+<pre><code>$ ( cd hooks-enabled &amp;&amp; ln -s ../hooks-available/command pubmsg )
+</code></pre>
+
+<p>The 'command' hook tries to call executables in the directory
+'commands-enabled' for everything said on the channel, with the first word
+as executable name, and other as arguments, so the next step is to choose
+some commands.</p>
+
+<h4>
+<a name="select-some-basic-commands" class="anchor" href="#select-some-basic-commands"><span class="octicon octicon-link"></span></a>Select some basic commands</h4>
+
+<p>Let's test them all ... you'll choose later :X</p>
+
+<pre><code>$ ( cd commands-enabled &amp;&amp; for command in ../commands-available/*; do ln -s "$command"; done )
+</code></pre>
+
+<p>/!\ Some commands will need writable directories like 'logs', 'db' or 'conf'</p>
+
+<h4>
+<a name="try-it-" class="anchor" href="#try-it-"><span class="octicon octicon-link"></span></a>Try it !</h4>
+
+<p>Now try your bot writing 'say hello' on the channel :
+The bot will run 'hooks-enabled/pubmsg' that points to
+'hooks-available/command'. hooks-available/commands receiving 'say
+hello' will call <code>commands-enabled/say hello</code>. say is, basically a
+shell script with 'echo $*' So it will echo hello, that will be
+wrote back by the bot on the channel.</p>
+
+<h3>
+<a name="i-wanna-write-commands-how-it-works-" class="anchor" href="#i-wanna-write-commands-how-it-works-"><span class="octicon octicon-link"></span></a>I wanna write commands, how it works ?</h3>
+
+<p>If you don't want to write complicated hooks, just use my simple one, and write commands.</p>
+
+<p>You first have to bind the <code>command</code> hook to <code>pubmsg</code> and <code>privmsg</code> hooks :</p>
+
+<pre><code>  $ ( cd hooks-enabled &amp;&amp; ln -s ../hooks-available/command pubmsg )
+  $ ( cd hooks-enabled &amp;&amp; ln -s ../hooks-available/command privmsg )
+</code></pre>
+
+<p>Now, for each received message, my 'command' hook will try to find an
+executable in the 'advanced-commands-enabled' directory, then in the
+'commands-enabled' directory, finally trying to run
+'commands-enabled/run'.</p>
+
+<p>So you can write commands in any language you want, just make them
+read their arguments, and make them write to stdout. A command also
+can put debugging information on stderr, the information will be
+logged by the bot, you can run the bot with the -vvv option to get
+your debug back to the screen.</p>
+
+<p>As commands are only executables, you don't have to restart the bot to
+make it see them, just add the file, and bim, it works.</p>
+
+<h3>
+<a name="advanced-commands" class="anchor" href="#advanced-commands"><span class="octicon octicon-link"></span></a>Advanced commands</h3>
+
+<p>Advanced commands have to live in ./advanced-commands-available/
+directory, create a symbolink link in the ./advanced-commands-enabled/
+to make them callable for the 'command' hook, permitting you to
+enable/disable a command in a few seconds.</p>
+
+<p>Commands in the advanced-commands-enabled permits you to return raw
+messages directly to the IRC server, permitting you to send messages,
+kicks, bans, join, whatever you want, you have to understand the IRC
+protocol to use them.</p>
+
+<h3>
+<a name="basic-commands" class="anchor" href="#basic-commands"><span class="octicon octicon-link"></span></a>Basic commands</h3>
+
+<p>Basic commands have to live in ./commands-available/
+directory, create a symbolink link in the ./commands-enabled/
+to make them callable for the 'command' hook, permitting you to
+enable/disable a command in a few seconds.</p>
+
+<p>A basic command can only reply with text, so don't worry about IRC
+protocol, don't worry about multiline responses, don't worry about
+response length limit, just write something to stdout it will be sent
+back to the one who called the command.</p>
+
+<p>A basic command writing a calendar on the channel should be named cal,
+and only contain :</p>
+
+<pre><code>#!/bin/sh
+cal
+</code></pre>
+
+<h3>
+<a name="i-wanna-write-hooks-how-it-works-" class="anchor" href="#i-wanna-write-hooks-how-it-works-"><span class="octicon octicon-link"></span></a>I wanna write hooks, how it works ?</h3>
+
+<p>YAUIB is a very basic bot that, for each event received from IRC will
+call a hook in the directory ./hooks-enabled/, so write your own
+hooks, in every language you want.</p>
+
+<h4>
+<a name="hooks-protocol" class="anchor" href="#hooks-protocol"><span class="octicon octicon-link"></span></a>Hooks protocol</h4>
+
+<p>Hooks reply can have two forms :</p>
+
+<ul>
+<li><p>Form 1: Prefix your response by 'RAW ' and every following lines
+will be sent to the server.</p></li>
+<li><p>Form 2: Prefix your response by 'MSG ', put a target (typically
+argv[3] if you wanna reply), and your response. Responses from MSG
+can follow on multiples lines, each line will be sent to the
+server, delayed from 1 second, to avoid being kiked too early for
+flood, your response will also be splitted in multiples lines if
+it's too long, so just don't worry when using this form.</p></li>
+</ul><h4>
+<a name="on-which-hooks-can-i-hook-my-scripts-" class="anchor" href="#on-which-hooks-can-i-hook-my-scripts-"><span class="octicon octicon-link"></span></a>On which hooks can I hook my scripts ?</h4>
+
+<p>Typical usefull commands are :</p>
+
+<ul>
+<li>all_raw_messages : Get all messages from IRC server, do whatever you want.
+ Specific parameters : Only the full message, in one parameter</li>
+<li>pubmsg : Hook on public messages
+ Specific parameters : Only the sentence, in one parameter</li>
+<li>privmsg : Hook on private messages
+ Specific parameters : Only the sentence, in one parameter</li>
+</ul><p>There are tons of other hooks ( &gt; 100 ) from irclib and I didn't know
+them all so watch your logs to catch those you want. (And document
+their parameters here ?)</p>
+
+<h4>
+<a name="which-parameters-are-sent-to-hooks-" class="anchor" href="#which-parameters-are-sent-to-hooks-"><span class="octicon octicon-link"></span></a>Which parameters are sent to hooks ?</h4>
+
+<p>Parameter 1, 2, 3 and 4 are :
+source login, source host, target login, and target host
+followed by command-specific parameters.</p>
+
+<p>There is a directory to store every hooks, that is hooks-available so you
+should enable only some needed, creating symlinks in the directory
+hooks-enabled.</p>
+
+<p>There is a usefull default hook I wrote for you, it's named 'command'.
+It executes commands that it find in the directory commands-enabled
+so you have to create some symlinks from the directory commands-available
+where I stored the commands I wrote.</p>
+
+<p>NOTE: You don't have to restart the bot when you change / add a hook.</p>
+
+<p>So a very basic 'parrot' hook should be :</p>
+
+<pre><code>#!/bin/sh
+shift 4 # Drop sender login and host, target login and host
+printf "%s\n" "$*"
+</code></pre>
+
+<h3>
+<a name="is-there-another-way-to-make-the-bot-speak-" class="anchor" href="#is-there-another-way-to-make-the-bot-speak-"><span class="octicon octicon-link"></span></a>Is there another way to make the bot speak ?</h3>
+
+<p>Yes, the bot is listening on a local port, by default 6668.
+Everything received on this port is wrote back to the channel.
+So a simple :</p>
+
+<pre><code>$ echo foo | netcat localhost 6668
+</code></pre>
+
+<p>will do the trick, but you should also try :</p>
+
+<pre><code>$ ./ircbot.py say foo
+</code></pre>
+
+<p>does the same !</p>
+
+<p>With this feature you can push messages from cron, webpages or
+everything else.</p>
+        </section>
+
+        <footer>
+          Yauib is maintained by <a href="https://github.com/JulienPalard">JulienPalard</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+                  <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-268798-13");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+      </div>
+    </div>
+  </body>
+</html>
