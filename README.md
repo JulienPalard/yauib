@@ -197,3 +197,5 @@ everything else.
 # Conclusion
 
 Enjoy creating new hooks / commands, using your favorite language!
+
+> logo by @Abdur-rahmaanj
